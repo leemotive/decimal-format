@@ -1,0 +1,19 @@
+{
+  "name": "decimal-format",
+  "version": "1.0.0",
+  "description": "format decimal",
+  "main": "lib/DecimalFormat.js",
+  "module": "es/DecimalFormat.js",
+  "jsnext:main": "es/DecimalFormat.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.1",
+    "@babel/plugin-proposal-class-properties": "^7.0.0",
+    "@babel/preset-env": "^7.0.0"
+  }
+}
