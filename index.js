@@ -1,7 +1,7 @@
-
+const formatCache = {};
 const resolveFormat = (format) => {
-  if (DecimalFormat.cache[format]) {
-    return DecimalFormat.cache[format];
+  if (formatCache[format]) {
+    return formatCache[format];
   }
 
   let minScale = null,
@@ -9,36 +9,38 @@ const resolveFormat = (format) => {
     length = 1,
     prefix = '',
     suffix = '',
-    percent = null,
+    percent = '',
     thousandSeparate = true;
 
-  if (format) {
-    const match = format.match(/^([^#0%‰]*)([#,]*[0,]*)(\.0*#*)?([%‰]?)([^0#]*)$/);
-    prefix = match[1];
-    suffix = match[5];
-    percent = match[4];
-    let int = match[2];
-    let decimal = match[3];
-    if (!int && !decimal) {
-      thousandSeparate = 3;
-    } else {
-      let lastIndex = int.lastIndexOf(',');
-      thousandSeparate = int.length - lastIndex - 1;
-      if (int.length === thousandSeparate) {
-        thousandSeparate = 0;
-      }
-      length = int.replace(/,/g, '').match(/#*(0*)/)[1].length;
-      if (decimal) {
-        let index = decimal.indexOf('#');
-        maxScale = decimal.length - 1;
-        if (~index) {
-          minScale = index - 1;
-        } else {
-          minScale = maxScale;
-        }
+  const match = format && format.match(/^([^#0%‰]*)([#,]*[0,]*)(\.0*#*)?([%‰]?)([^0#]*)$/);
+  
+  if (!match) {
+    throw '非法的字符串格式';
+  }
+  prefix = match[1];
+  suffix = match[5];
+  percent = match[4];
+  let int = match[2];
+  let decimal = match[3];
+  if (!int && !decimal) {
+    thousandSeparate = 3;
+  } else {
+    let lastIndex = int.lastIndexOf(',');
+    thousandSeparate = int.length - lastIndex - 1;
+    if (int.length === thousandSeparate) {
+      thousandSeparate = 0;
+    }
+    length = int.replace(/,/g, '').match(/#*(0*)/)[1].length;
+    if (decimal) {
+      let index = decimal.indexOf('#');
+      maxScale = decimal.length - 1;
+      if (~index) {
+        minScale = index - 1;
       } else {
-        minScale = maxScale = 0;
+        minScale = maxScale;
       }
+    } else {
+      minScale = maxScale = 0;
     }
   }
   const config = {
@@ -50,13 +52,16 @@ const resolveFormat = (format) => {
     percent,
     thousandSeparate,
   };
-  DecimalFormat.cache[format] = config;
+  formatCache[format] = config;
   return config;
 }
 
 function enlarge(n, multi) {
   if (!multi) {
     return n;
+  }
+  if (multi < 0) {
+    return shrink(n, -multi);
   }
   let num = `${n}${''.padEnd(multi, 0)}`;
   const index = num.indexOf('.');
@@ -72,19 +77,22 @@ function enlarge(n, multi) {
 function shrink(n, multi) {
   if (!multi) {
     return n;
-  };
+  }
+  if (multi < 0) {
+    return enlarge(n, -multi);
+  }
   let sign = n > 0 ? '' : '-';
 
   let num = `${sign}${''.padStart(multi, 0)}${Math.abs(n)}`;
+  let index = num.indexOf('.');
   const arr = num.split('');
-  if (arr.length === 2) {
-    const index = num.indexOf('.');
+  if (~index) {
     arr.splice(index, 1);
     arr.splice(index - multi, 0, '.');
-    return +arr.join('');
+    return arr.join('');
   } else {
     arr.splice(-multi, 0, '.');
-    return +arr.join('');
+    return arr.join('');
   }
 }
 
@@ -144,8 +152,6 @@ function round(n, scale, roundingMode) {
 }
 
 class DecimalFormat {
-  static cache = {}
-
   constructor(format = '', config, roundingMode = RoundingMode.HALF_UP) {
     if (typeof config === 'number') {
       roundingMode = config;
@@ -158,7 +164,7 @@ class DecimalFormat {
     this.roundingMode = roundingMode;
   }
 
-  format = (n) => {
+  format(n) {
     const { maxScale, minScale, percent, length, thousandSeparate, prefix, suffix } = this.config;
     let number = +n;
     if (isNaN(number)) {

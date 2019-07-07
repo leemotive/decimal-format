@@ -1,19 +1,44 @@
 {
   "name": "decimal-format",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "format decimal",
-  "main": "lib/DecimalFormat.js",
-  "module": "es/DecimalFormat.js",
-  "jsnext:main": "es/DecimalFormat.js",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "jsnext:main": "es/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rm -rf dist es lib && rollup -c && uglifyjs dist/decimalFormat.js -o dist/decimalFormat.min.js"
   },
-  "author": "",
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "author": "leemotive@163.com",
   "license": "ISC",
   "devDependencies": {
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.0.1",
-    "@babel/plugin-proposal-class-properties": "^7.0.0",
-    "@babel/preset-env": "^7.0.0"
-  }
+    "babel-eslint": "^10.0.2",
+    "eslint": "^6.0.1",
+    "husky": "^3.0.0",
+    "lint-staged": "^9.1.0",
+    "prettier": "^1.18.2",
+    "rollup": "^1.16.6",
+    "uglify-es": "^3.3.9"
+  },
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leemotive/decimal-format.git"
+  },
+  "keywords": [
+    "decimal",
+    "format"
+  ],
+  "bugs": {
+    "url": "https://github.com/leemotive/decimal-format/issues"
+  },
+  "homepage": "https://github.com/leemotive/decimal-format#readme"
 }
