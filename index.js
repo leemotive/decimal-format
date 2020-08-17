@@ -1,61 +1,137 @@
 const formatCache = {};
-const resolveFormat = (format) => {
-  if (formatCache[format]) {
-    return formatCache[format];
+const fmtReg = /[0#.,]/;
+const resolveFormat = pattern => {
+  if (formatCache[pattern]) {
+    return formatCache[pattern];
   }
 
-  let minScale = null,
-    maxScale = null,
-    length = 1,
-    prefix = '',
-    suffix = '',
-    percent = '',
-    thousandSeparate = true;
+  let prefix = [];
+  let suffix = [];
+  let withSign = false;
+  let percent = 1; // 是否需要转化百分化或者千分化, 百分化为100, 千分化为1000
+  let fmt = [];
+  let ch = '';
+  let state = 'PREFIX';
+  let escape = false;
 
-  const match = format && format.match(/^([^#0%‰]*)([#,]*[0,]*)(\.0*#*)?([%‰]?)([^0#]*)$/);
-  
-  if (!match) {
-    throw '非法的字符串格式';
-  }
-  prefix = match[1];
-  suffix = match[5];
-  percent = match[4];
-  let int = match[2];
-  let decimal = match[3];
-  if (!int && !decimal) {
-    thousandSeparate = 3;
-  } else {
-    let lastIndex = int.lastIndexOf(',');
-    thousandSeparate = int.length - lastIndex - 1;
-    if (int.length === thousandSeparate) {
-      thousandSeparate = 0;
-    }
-    length = int.replace(/,/g, '').match(/#*(0*)/)[1].length;
-    if (decimal) {
-      let index = decimal.indexOf('#');
-      maxScale = decimal.length - 1;
-      if (~index) {
-        minScale = index - 1;
-      } else {
-        minScale = maxScale;
-      }
+  let temp;
+  function append(c) {
+    if ('PREFIX' === state) {
+      temp = prefix;
+    } else if ('FMT' === state) {
+      temp = fmt;
     } else {
-      minScale = maxScale = 0;
+      temp = suffix;
+    }
+    temp.push(c);
+    if (escape) {
+      return;
+    }
+
+    if (
+      'PREFIX' === state &&
+      ['+', '-'].includes(c) &&
+      fmtReg.test(pattern[i + 1])
+    ) {
+      temp.pop();
+      withSign = true;
+    }
+
+    if (suffix.length === 1) {
+      if (suffix[0] === '%') {
+        percent = 100;
+      } else if (suffix[0] === '‰') {
+        percent = 1000;
+      }
     }
   }
-  const config = {
-    minScale,
-    maxScale,
-    length,
+
+  function setState(c) {
+    if (state === 'PREFIX' && fmtReg.test(c)) {
+      state = 'FMT';
+    } else if (state === 'FMT' && !fmtReg.test(c)) {
+      state = 'SUFFIX';
+    }
+  }
+  let i = 0;
+  for (; i < pattern.length; i++) {
+    ch = pattern[i];
+    if (escape) {
+      append(ch);
+      escape = false;
+      continue;
+    }
+
+    setState(ch);
+
+    if (ch === '\\') {
+      escape = true;
+    } else {
+      append(ch);
+    }
+  }
+
+  prefix = prefix.join('');
+  fmt = fmt.join('');
+  suffix = suffix.join('');
+
+  if (!fmt) {
+    return (formatCache[pattern] = {
+      suffix,
+      prefix,
+      percent,
+      thousandSeparate: 3,
+      withSign,
+    });
+  }
+
+  if (/\..*\./.test(fmt)) {
+    throw Error(`Multiple decimal separators in pattern "${pattern}"`);
+  }
+
+  const [intFmt, decimalFmt = ''] = fmt.split('.');
+  if (/[^0#]/.test(decimalFmt)) {
+    throw Error(`Malformed pattern "${pattern}"`);
+  }
+  if (decimalFmt.includes('#0')) {
+    throw Error(`Unexpected '0' in pattern "${pattern}"`);
+  }
+  if (intFmt.endsWith(',')) {
+    throw Error(`Malformed pattern "${pattern}"`);
+  }
+  if (/[^0#,]/.test(intFmt)) {
+    throw Error(`Malformed pattern "${pattern}"`);
+  }
+  if (/0.*#/.test(intFmt)) {
+    throw Error(`Unexpected '0' in pattern "${pattern}"`);
+  }
+
+  let thousandSeparate = 0;
+  const lastIndexOfSeperator = intFmt.lastIndexOf(',');
+  if (lastIndexOfSeperator !== -1) {
+    thousandSeparate = intFmt.length - lastIndexOfSeperator - 1;
+  }
+
+  const length = intFmt.replace(/,/g, '').match(/0*$/)[0].length;
+  const maxScale = decimalFmt.length;
+  const minScale = decimalFmt.match(/^0*/)[0].length;
+  const radixPoint = fmt.endsWith('.');
+
+  let config = {
     prefix,
     suffix,
     percent,
     thousandSeparate,
+    maxScale,
+    minScale,
+    length,
+    radixPoint,
+    withSign,
   };
-  formatCache[format] = config;
+  formatCache[pattern] = config;
   return config;
-}
-
+};
+// 小数点右移
 function enlarge(n, multi) {
   if (!multi) {
     return n;
@@ -63,17 +139,10 @@ function enlarge(n, multi) {
   if (multi < 0) {
     return shrink(n, -multi);
   }
-  let num = `${n}${''.padEnd(multi, 0)}`;
-  const index = num.indexOf('.');
-  if (~index) {
-    const arr = num.split('');
-    arr.splice(index, 1);
-    arr.splice(index + multi, 0, '.');
-    return +arr.join('');
-  } else {
-    return +num;
-  }
+  let num = `${n}${'0'.repeat(multi)}`;
+  return +num.replace(new RegExp(`\\.(\\d{${multi}})`), '$1.');
 }
+// 小数点左移
 function shrink(n, multi) {
   if (!multi) {
     return n;
@@ -81,21 +150,11 @@ function shrink(n, multi) {
   if (multi < 0) {
     return enlarge(n, -multi);
   }
-  let sign = n > 0 ? '' : '-';
-
-  let num = `${sign}${''.padStart(multi, 0)}${Math.abs(n)}`;
-  let index = num.indexOf('.');
-  const arr = num.split('');
-  if (~index) {
-    arr.splice(index, 1);
-    arr.splice(index - multi, 0, '.');
-    return arr.join('');
-  } else {
-    arr.splice(-multi, 0, '.');
-    return arr.join('');
-  }
+  return +`${n}`
+    .replace(/^-?/, `$&${'0'.repeat(multi)}`)
+    .replace(new RegExp(`(\\d{${multi}})(\\.|$)`), '.$1');
 }
-
+// 防止1.005.toFixed(2) === 1.00 的问题出现
 function adjust(n, scale) {
   let num = `${n}`;
   if (num.includes('.')) {
@@ -121,7 +180,10 @@ function round(n, scale, roundingMode) {
     } else if (roundingMode === RoundingMode.UP) {
       return +`${sign}${shrink(Math.ceil(enlarge(Math.abs(n), scale)), scale)}`;
     } else if (roundingMode === RoundingMode.DOWN) {
-      return +`${sign}${shrink(Math.floor(enlarge(Math.abs(n), scale)), scale)}`;
+      return +`${sign}${shrink(
+        Math.floor(enlarge(Math.abs(n), scale)),
+        scale,
+      )}`;
     } else if (roundingMode === RoundingMode.HALF_UP) {
       return +adjust(n, scale).toFixed(scale);
     } else if (roundingMode === RoundingMode.HALF_DOWN) {
@@ -145,19 +207,17 @@ function round(n, scale, roundingMode) {
       if (shrink(Math.ceil(enlarge(n, scale)), scale) === n) {
         return n;
       } else {
-        throw 'ArithmeticException: Rounding needed with the rounding mode being set to RoundingMode.UNNECESSARY';
+        throw Error(
+          'ArithmeticException: Rounding needed with the rounding mode being set to RoundingMode.UNNECESSARY',
+        );
       }
     }
   }
 }
 
 class DecimalFormat {
-  constructor(format = '', config, roundingMode = RoundingMode.HALF_UP) {
-    if (typeof config === 'number') {
-      roundingMode = config;
-      config = {};
-    }
-    this.config = { ...resolveFormat(format), ...config };
+  constructor(format = '', roundingMode = RoundingMode.HALF_UP) {
+    this.config = { ...resolveFormat(format) };
     this.roundingMode = roundingMode;
   }
   setRoundingMode(roundingMode) {
@@ -165,30 +225,60 @@ class DecimalFormat {
   }
 
   format(n) {
-    const { maxScale, minScale, percent, length, thousandSeparate, prefix, suffix } = this.config;
+    const {
+      maxScale,
+      minScale,
+      percent,
+      length,
+      thousandSeparate,
+      prefix,
+      suffix,
+      radixPoint,
+      withSign,
+    } = this.config;
     let number = +n;
     if (isNaN(number)) {
-      throw 'not a valid number';
+      throw Error('not a valid number');
     }
-    const multi = percent == '%' ? 2 : percent === '‰' ? 3 : 0;
-    number = enlarge(number, multi);
-    if (maxScale !== null) {
+    number = enlarge(number, Math.log10(percent));
+    if (maxScale !== void 0) {
       number = round(number, maxScale, this.roundingMode).toFixed(maxScale);
     } else {
       number = `${number}`;
     }
     let [int, decimal] = number.split('.');
     if (length) {
-      int = int.padStart(length, 0);
+      const intMatch = int.match(/([+-]?)(\d*)/);
+      int = intMatch[1] + intMatch[2].padStart(length, 0);
+    } else if (int === '0') {
+      int = '';
     }
-    if (thousandSeparate < int.length) {
-      int = int.replace(new RegExp(`(\\d{1,${thousandSeparate}})(?=(?:\\d{${thousandSeparate}})+$)`, 'g'), '$1,');
+    if (thousandSeparate && thousandSeparate < int.length) {
+      // 整数部分如果需要格式化
+      int = int.replace(
+        new RegExp(
+          `(\\d{1,${thousandSeparate}})(?=(?:\\d{${thousandSeparate}})+$)`,
+          'g',
+        ),
+        '$1,',
+      );
     }
 
     if (decimal) {
       decimal = decimal.replace(/0+$/, '').padEnd(minScale, 0);
     }
-    return `${prefix}${[int, decimal].join('.').replace(/\.$/, '')}${percent}${suffix}`;
+
+    number = [int, decimal].join('.');
+    if (!radixPoint) {
+      number = number.replace(/\.$/, '');
+    }
+    if (withSign && !number.startsWith('-')) {
+      number = `+${number}`;
+    }
+    if (number === '') {
+      number = 0;
+    }
+    return `${prefix}${number}${suffix}`;
   }
 }
 
@@ -203,4 +293,4 @@ export const RoundingMode = {
   HALF_DOWN: 5,
   HALF_EVEN: 6,
   UNNECESSARY: 7,
-}
+};
