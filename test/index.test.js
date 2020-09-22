@@ -1,4 +1,4 @@
-/* global test, expect */
+/* global describe, test, expect */
 
 import DecimalFormat, { RoundingMode } from '../index.js';
 
@@ -131,4 +131,38 @@ test('RoundingMode.UNNECESSARY', () => {
   expect(df.format.bind(df, 1.45)).toThrow();
   expect(df.format(6.9)).toBe('6.9');
   expect(df.format(6)).toBe('6.0');
+});
+
+describe('异常', () => {
+  test('多个小数点', () => {
+    expect(() => {
+      new DecimalFormat('0..0');
+    }).toThrow(/^Multiple decimal separators in pattern/);
+  });
+  test('小数部分有逗号', () => {
+    expect(() => {
+      new DecimalFormat('0.,0');
+    }).toThrow(/^Malformed pattern/);
+  });
+  test('小数部分出现#在0前面', () => {
+    expect(() => {
+      new DecimalFormat('0.#0');
+    }).toThrow(/^Unexpected '0' in pattern/);
+  });
+  test('整数部分逗号结尾', () => {
+    expect(() => {
+      new DecimalFormat('0,.0');
+    }).toThrow(/^Malformed pattern/);
+  });
+  test('整数部分0在#前面', () => {
+    expect(() => {
+      new DecimalFormat('0#.0');
+    }).toThrow(/^Unexpected '0' in pattern/);
+  });
+  test('非数字格式化', () => {
+    const df = new DecimalFormat('0.0');
+    expect(() => {
+      df.format('u78');
+    }).toThrow('not a valid number');
+  });
 });

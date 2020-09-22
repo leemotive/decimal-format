@@ -99,9 +99,11 @@ const resolveFormat = pattern => {
   if (intFmt.endsWith(',')) {
     throw Error(`Malformed pattern "${pattern}"`);
   }
+  /* fmt只可能出现 #0., 四种符号,多个.的情况已经在前面排除，这里不需要这个if了
   if (/[^0#,]/.test(intFmt)) {
     throw Error(`Malformed pattern "${pattern}"`);
   }
+  */
   if (/0.*#/.test(intFmt)) {
     throw Error(`Unexpected '0' in pattern "${pattern}"`);
   }
@@ -195,7 +197,7 @@ function round(n, scale, roundingMode) {
     } else if (roundingMode === RoundingMode.HALF_EVEN) {
       const decimalArr = decimal.split('');
       if (decimalArr[scale] == 5) {
-        let lastNum = decimalArr[scale - 1] || int.slice(-1);
+        let lastNum = decimalArr[scale - 1] || int.slice(-1)[0];
         if (+lastNum % 2 === 0) {
           decimalArr.splice(scale);
         } else {
