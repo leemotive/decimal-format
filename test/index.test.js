@@ -84,6 +84,14 @@ test('小数部分至少2位至多4位', () => {
   expect(df.format(13.19997)).toBe('13.20');
 });
 
+test('会自动转科学记数法形式的', () => {
+  const df = new DecimalFormat('0.00####');
+  df.setRoundingMode(RoundingMode.DOWN);
+  expect(df.format(0.0000005)).toBe('0.00');
+  df.setRoundingMode(RoundingMode.HALF_UP);
+  expect(df.format(0.0000005)).toBe('0.000001');
+});
+
 test('RoundingMode.UP', () => {
   const df = new DecimalFormat('0.00##', RoundingMode.UP);
   expect(df.format(13.12361)).toBe('13.1237');
