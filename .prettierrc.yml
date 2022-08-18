@@ -3,3 +3,12 @@ singleQuote: true
 bracketSpacing: true
 trailingComma: all
 printWidth: 120
+tabWidth: 2
+useTabs: false
+quoteProps: as-needed
+jsxSingleQuote: false
+jsxBracketSameLine: false
+arrowParens: avoid
+vueIndentScriptAndStyle: false
+endOfLine: lf
+embeddedLanguageFormatting: auto

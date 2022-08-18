@@ -1,6 +1,6 @@
 /* global describe, test, expect */
 
-import DecimalFormat, { RoundingMode } from '../index.js';
+import DecimalFormat, { RoundingMode } from '../index';
 
 test('基本测试使用', () => {
   const df = new DecimalFormat('#,##0.00');
@@ -11,7 +11,7 @@ test('基本测试使用', () => {
 });
 
 test('无格式，默认3位分割', () => {
-  const df = new DecimalFormat('');
+  const df = new DecimalFormat();
   expect(df.format(1234.1)).toBe('1,234.1');
 });
 
@@ -132,6 +132,10 @@ test('RoundingMode.HALF_EVEN', () => {
   const df = new DecimalFormat('0.0', RoundingMode.HALF_EVEN);
   expect(df.format(13.257)).toBe('13.2');
   expect(df.format(-13.157)).toBe('-13.2');
+
+  const df1 = new DecimalFormat('0', RoundingMode.HALF_EVEN);
+  expect(df1.format(13.5)).toBe('14');
+  expect(df1.format(12.5)).toBe('12');
 });
 
 test('RoundingMode.UNNECESSARY', () => {
@@ -143,29 +147,19 @@ test('RoundingMode.UNNECESSARY', () => {
 
 describe('异常', () => {
   test('多个小数点', () => {
-    expect(() => {
-      new DecimalFormat('0..0');
-    }).toThrow(/^Multiple decimal separators in pattern/);
+    expect(() => new DecimalFormat('0..0')).toThrow(/^Multiple decimal separators in pattern/);
   });
   test('小数部分有逗号', () => {
-    expect(() => {
-      new DecimalFormat('0.,0');
-    }).toThrow(/^Malformed pattern/);
+    expect(() => new DecimalFormat('0.,0')).toThrow(/^Malformed pattern/);
   });
   test('小数部分出现#在0前面', () => {
-    expect(() => {
-      new DecimalFormat('0.#0');
-    }).toThrow(/^Unexpected '0' in pattern/);
+    expect(() => new DecimalFormat('0.#0')).toThrow(/^Unexpected '0' in pattern/);
   });
   test('整数部分逗号结尾', () => {
-    expect(() => {
-      new DecimalFormat('0,.0');
-    }).toThrow(/^Malformed pattern/);
+    expect(() => new DecimalFormat('0,.0')).toThrow(/^Malformed pattern/);
   });
   test('整数部分0在#前面', () => {
-    expect(() => {
-      new DecimalFormat('0#.0');
-    }).toThrow(/^Unexpected '0' in pattern/);
+    expect(() => new DecimalFormat('0#.0')).toThrow(/^Unexpected '0' in pattern/);
   });
   test('非数字格式化', () => {
     const df = new DecimalFormat('0.0');
