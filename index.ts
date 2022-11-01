@@ -212,7 +212,7 @@ function enlarge(n: number, multi: number): string {
 
 // 防止1.005.toFixed(2) === 1.00 的问题出现
 function adjust(n: number, scale: number) {
-  const num = `${toString(n)}`;
+  const num = toString(n);
   if (num.includes('.')) {
     const arr = num.split('.');
     arr[1] = `${arr[1].padEnd(scale, '0')}1`;
@@ -223,7 +223,7 @@ function adjust(n: number, scale: number) {
 }
 
 function round(n: number, scale: number, roundingMode: RoundingType): string {
-  let [int, decimal] = `${toString(n)}`.split('.');
+  let [int, decimal] = toString(n).split('.');
   const sign = n > 0 ? '' : '-';
   if (!decimal) {
     return n.toFixed(scale);

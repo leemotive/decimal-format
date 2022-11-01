@@ -9,7 +9,9 @@
   "typings": "./typings/index.d.ts",
   "scripts": {
     "test": "jest",
-    "build": "rm -rf dist es lib && rollup -c && uglifyjs dist/decimalFormat.js -o dist/decimalFormat.min.js"
+    "build": "rm -rf dist es lib && rollup -c && uglifyjs dist/decimalFormat.js -o dist/decimalFormat.min.js",
+    "prepare": "npx husky install",
+    "prepublish": "npm run build"
   },
   "author": "leemotive@163.com",
   "license": "ISC",
