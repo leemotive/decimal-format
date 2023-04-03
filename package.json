@@ -1,6 +1,6 @@
 {
   "name": "decimal-format",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "format decimal",
   "main": "lib/index.js",
   "module": "es/index.mjs",

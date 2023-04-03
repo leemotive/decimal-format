@@ -124,18 +124,24 @@ test('RoundingMode.HALF_UP', () => {
 
 test('RoundingMode.HALF_DOWN', () => {
   const df = new DecimalFormat('0.0', RoundingMode.HALF_DOWN);
-  expect(df.format(13.157)).toBe('13.1');
-  expect(df.format(-13.157)).toBe('-13.1');
+  expect(df.format(13.157)).toBe('13.2');
+  expect(df.format(13.15)).toBe('13.1');
+  expect(df.format(-13.157)).toBe('-13.2');
+  expect(df.format(-13.15)).toBe('-13.1');
 });
 
 test('RoundingMode.HALF_EVEN', () => {
   const df = new DecimalFormat('0.0', RoundingMode.HALF_EVEN);
-  expect(df.format(13.257)).toBe('13.2');
-  expect(df.format(-13.157)).toBe('-13.2');
+  expect(df.format(13.25)).toBe('13.2');
+  expect(df.format(13.251)).toBe('13.3');
+  expect(df.format(-13.25)).toBe('-13.2');
+  expect(df.format(-13.251)).toBe('-13.3');
 
   const df1 = new DecimalFormat('0', RoundingMode.HALF_EVEN);
-  expect(df1.format(13.5)).toBe('14');
   expect(df1.format(12.5)).toBe('12');
+  expect(df1.format(12.51)).toBe('13');
+  expect(df1.format(12.5)).toBe('12');
+  expect(df1.format(12.51)).toBe('13');
 });
 
 test('RoundingMode.UNNECESSARY', () => {

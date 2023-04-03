@@ -247,21 +247,22 @@ function round(n: number, scale: number, roundingMode: RoundingType): string {
   }
   if (roundingMode === RoundingMode.HALF_DOWN) {
     const decimalArr = decimal.split('');
-    if (decimalArr[scale] === '5') {
+    if (/^50*$/.test(decimalArr.slice(scale).join(''))) {
       decimalArr[scale] = '1';
     }
     return (+[int, decimalArr.join('')].join('.')).toFixed(scale);
   }
   if (roundingMode === RoundingMode.HALF_EVEN) {
     const decimalArr = decimal.split('');
-    if (decimalArr[scale] === '5') {
-      const lastNum = decimalArr[scale - 1] || int.slice(-1)[0];
+    if (/^50*$/.test(decimalArr.slice(scale).join(''))) {
+      const lastNum = decimalArr[scale - 1] || int.slice(-1);
       if (+lastNum % 2 === 0) {
         decimalArr.splice(scale);
       } else {
         decimalArr[scale] = '9';
       }
     }
+
     return (+[int, decimalArr.join('')].join('.')).toFixed(scale);
   }
   if (roundingMode === RoundingMode.UNNECESSARY) {
