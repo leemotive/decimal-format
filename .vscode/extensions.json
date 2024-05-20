@@ -1,6 +1,3 @@
 {
-  "recommendations": [
-    "biomejs.biome",
-    "jripouteau.japa-vscode"
-  ]
+  "recommendations": ["biomejs.biome", "jripouteau.japa-vscode"]
 }
