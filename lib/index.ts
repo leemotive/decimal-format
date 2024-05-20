@@ -16,26 +16,16 @@ type FmtCacheType = {
 };
 
 export type RoundingType = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
-type ModeType = {
-  UP: 0;
-  DOWN: 1;
-  CEILING: 2;
-  FLOOR: 3;
-  HALF_UP: 4;
-  HALF_DOWN: 5;
-  HALF_EVEN: 6;
-  UNNECESSARY: 7;
-};
 
-export const RoundingMode: ModeType = {
-  UP: 0,
-  DOWN: 1,
-  CEILING: 2,
-  FLOOR: 3,
-  HALF_UP: 4,
-  HALF_DOWN: 5,
-  HALF_EVEN: 6,
-  UNNECESSARY: 7,
+export enum RoundingMode {
+  up = 0,
+  down = 1,
+  ceiling = 2,
+  floor = 3,
+  halfUp = 4,
+  halfDown = 5,
+  halfEven = 6,
+  unnecessary = 7,
 };
 
 const formatCache: FmtCacheType = {};
@@ -93,13 +83,11 @@ const resolveFormat = (pattern: string): FmtObject => {
       state = "SUFFIX";
     }
   }
-  // eslint-disable-next-line no-plusplus
   for (let i = 0; i < pattern.length; i++) {
     ch = pattern[i];
     if (escape) {
       append(ch, i);
       escape = false;
-      // eslint-disable-next-line no-continue
       continue;
     }
 
@@ -182,7 +170,6 @@ function toString(n: number): string {
   const nStr = `${n}`;
   if (nStr.includes("e")) {
     const nArr = nStr.split("e");
-    // eslint-disable-next-line no-use-before-define
     return enlarge(+nArr[0], +nArr[1]);
   }
   return nStr;
@@ -191,7 +178,6 @@ function toString(n: number): string {
 function shrink(n: number, multi: number) {
   if (multi < 0) {
     /* istanbul ignore next */
-    // eslint-disable-next-line no-use-before-define
     return enlarge(n, -multi);
   }
   const nStr = toString(n);
@@ -236,29 +222,29 @@ function round(n: number, scale: number, roundingMode: RoundingType): string {
   }
 
   decimal = decimal.padEnd(scale + 1, "0");
-  if (roundingMode === RoundingMode.CEILING) {
+  if (roundingMode === RoundingMode.ceiling) {
     return shrink(Math.ceil(+enlarge(n, scale)), scale);
   }
-  if (roundingMode === RoundingMode.FLOOR) {
+  if (roundingMode === RoundingMode.floor) {
     return shrink(Math.floor(+enlarge(n, scale)), scale);
   }
-  if (roundingMode === RoundingMode.UP) {
+  if (roundingMode === RoundingMode.up) {
     return `${sign}${shrink(Math.ceil(+enlarge(Math.abs(n), scale)), scale)}`;
   }
-  if (roundingMode === RoundingMode.DOWN) {
+  if (roundingMode === RoundingMode.down) {
     return `${sign}${shrink(Math.floor(+enlarge(Math.abs(n), scale)), scale)}`;
   }
-  if (roundingMode === RoundingMode.HALF_UP) {
+  if (roundingMode === RoundingMode.halfUp) {
     return (+adjust(n, scale)).toFixed(scale);
   }
-  if (roundingMode === RoundingMode.HALF_DOWN) {
+  if (roundingMode === RoundingMode.halfDown) {
     const decimalArr = decimal.split("");
     if (/^50*$/.test(decimalArr.slice(scale).join(""))) {
       decimalArr[scale] = "1";
     }
     return (+[int, decimalArr.join("")].join(".")).toFixed(scale);
   }
-  if (roundingMode === RoundingMode.HALF_EVEN) {
+  if (roundingMode === RoundingMode.halfEven) {
     const decimalArr = decimal.split("");
     if (/^50*$/.test(decimalArr.slice(scale).join(""))) {
       const lastNum = decimalArr[scale - 1] || int.slice(-1);
@@ -271,7 +257,7 @@ function round(n: number, scale: number, roundingMode: RoundingType): string {
 
     return (+[int, decimalArr.join("")].join(".")).toFixed(scale);
   }
-  if (roundingMode === RoundingMode.UNNECESSARY) {
+  if (roundingMode === RoundingMode.unnecessary) {
     if (+shrink(Math.ceil(+enlarge(n, scale)), scale) === n) {
       return String(n);
     }
@@ -288,7 +274,7 @@ export class DecimalFormat {
 
   private roundingMode: RoundingType;
 
-  constructor(format = "", roundingMode: RoundingType = RoundingMode.HALF_UP) {
+  constructor(format = "", roundingMode: RoundingType = RoundingMode.halfUp) {
     this.config = { ...resolveFormat(format) };
     this.roundingMode = roundingMode;
   }
