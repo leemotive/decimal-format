@@ -40,9 +40,9 @@ const resolveFormat = (pattern: string): FmtObject => {
   const fmt: string[] = [];
   let ch = "";
   let state = "PREFIX";
-  let escape = false;
+  let shouldEscape = false;
 
-  let temp;
+  let temp: string[] = [];
   function append(c: string, i: number) {
     if (state === "PREFIX") {
       temp = prefix;
@@ -52,7 +52,7 @@ const resolveFormat = (pattern: string): FmtObject => {
       temp = suffix;
     }
     temp.push(c);
-    if (escape) {
+    if (shouldEscape) {
       return;
     }
 
@@ -83,16 +83,16 @@ const resolveFormat = (pattern: string): FmtObject => {
   }
   for (let i = 0; i < pattern.length; i++) {
     ch = pattern[i];
-    if (escape) {
+    if (shouldEscape) {
       append(ch, i);
-      escape = false;
+      shouldEscape = false;
       continue;
     }
 
     setState(ch);
 
     if (ch === "\\") {
-      escape = true;
+      shouldEscape = true;
     } else {
       append(ch, i);
     }
@@ -141,11 +141,15 @@ const resolveFormat = (pattern: string): FmtObject => {
   if (lastIndexOfSeperator !== -1) {
     thousandSeparate = intFmt.length - lastIndexOfSeperator - 1;
   }
-  // @ts-expect-error The error has been eliminated with
-  const { length } = intFmt.replace(/,/g, "").match(/0*$/)[0];
+  const trailingZeros = intFmt.replace(/,/g, "").match(/0*$/)?.[0];
+
+  if (trailingZeros === undefined) {
+    throw Error(`Malformed pattern "${pattern}"`);
+  }
+
+  const { length } = trailingZeros;
   const maxScale = decimalFmt.length;
-  // @ts-expect-error The error has been eliminated with
-  const minScale = decimalFmt.match(/^0*/)[0].length;
+  const minScale = decimalFmt.match(/^0*/)?.[0].length;
   const radixPoint = fmtStr.endsWith(".");
 
   const config: FmtObject = {
@@ -164,7 +168,7 @@ const resolveFormat = (pattern: string): FmtObject => {
 };
 
 // Supports numbers like 0.0000005 that can be converted into scientific notation like 5e-7
-function toString(n: number): string {
+function convertToString(n: number): string {
   const nStr = `${n}`;
   if (nStr.includes("e")) {
     const nArr = nStr.split("e");
@@ -175,12 +179,10 @@ function toString(n: number): string {
 // Decimal point left
 function shrink(n: number, multi: number) {
   if (multi < 0) {
-    /* istanbul ignore next */
     return enlarge(n, -multi);
   }
-  const nStr = toString(n);
+  const nStr = convertToString(n);
   if (!multi) {
-    /* istanbul ignore next */
     return nStr;
   }
   return `${nStr}`
@@ -192,7 +194,7 @@ function enlarge(n: number, multi: number): string {
   if (multi < 0) {
     return shrink(n, -multi);
   }
-  const nStr = toString(n);
+  const nStr = convertToString(n);
   if (!multi) {
     return nStr;
   }
@@ -202,69 +204,82 @@ function enlarge(n: number, multi: number): string {
 
 // Prevent the problem of 1.005.toFixed(2) === 1.00
 function adjust(n: number, scale: number) {
-  const num = toString(n);
+  const num = convertToString(n);
   if (num.includes(".")) {
     const arr = num.split(".");
     arr[1] = `${arr[1].padEnd(scale, "0")}1`;
     return +arr.join(".");
   }
-  /* istanbul ignore next */
   return n;
 }
 
 function round(n: number, scale: number, roundingMode: RoundingMode): string {
-  let [int, decimal] = toString(n).split(".");
+  let [int, decimal] = convertToString(n).split(".");
   const sign = n > 0 ? "" : "-";
   if (!decimal) {
     return n.toFixed(scale);
   }
 
   decimal = decimal.padEnd(scale + 1, "0");
-  if (roundingMode === RoundingMode.Ceiling) {
-    return shrink(Math.ceil(+enlarge(n, scale)), scale);
-  }
-  if (roundingMode === RoundingMode.Floor) {
-    return shrink(Math.floor(+enlarge(n, scale)), scale);
-  }
-  if (roundingMode === RoundingMode.Up) {
-    return `${sign}${shrink(Math.ceil(+enlarge(Math.abs(n), scale)), scale)}`;
-  }
-  if (roundingMode === RoundingMode.Down) {
-    return `${sign}${shrink(Math.floor(+enlarge(Math.abs(n), scale)), scale)}`;
-  }
-  if (roundingMode === RoundingMode.HalfUp) {
-    return (+adjust(n, scale)).toFixed(scale);
-  }
-  if (roundingMode === RoundingMode.HalfDown) {
-    const decimalArr = decimal.split("");
-    if (/^50*$/.test(decimalArr.slice(scale).join(""))) {
-      decimalArr[scale] = "1";
-    }
-    return (+[int, decimalArr.join("")].join(".")).toFixed(scale);
-  }
-  if (roundingMode === RoundingMode.HalfEven) {
-    const decimalArr = decimal.split("");
-    if (/^50*$/.test(decimalArr.slice(scale).join(""))) {
-      const lastNum = decimalArr[scale - 1] || int.slice(-1);
-      if (+lastNum % 2 === 0) {
-        decimalArr.splice(scale);
-      } else {
-        decimalArr[scale] = "9";
-      }
+
+  switch (roundingMode) {
+    case RoundingMode.Ceiling: {
+      return shrink(Math.ceil(+enlarge(n, scale)), scale);
     }
 
-    return (+[int, decimalArr.join("")].join(".")).toFixed(scale);
-  }
-  if (roundingMode === RoundingMode.Unnecessary) {
-    if (+shrink(Math.ceil(+enlarge(n, scale)), scale) === n) {
-      return String(n);
+    case RoundingMode.Floor: {
+      return shrink(Math.floor(+enlarge(n, scale)), scale);
     }
-    throw Error(
-      "ArithmeticException: Rounding needed with the rounding mode being set to RoundingMode.UNNECESSARY",
-    );
+
+    case RoundingMode.Up: {
+      return `${sign}${shrink(Math.ceil(+enlarge(Math.abs(n), scale)), scale)}`;
+    }
+
+    case RoundingMode.Down: {
+      return `${sign}${shrink(
+        Math.floor(+enlarge(Math.abs(n), scale)),
+        scale,
+      )}`;
+    }
+
+    case RoundingMode.HalfUp: {
+      return (+adjust(n, scale)).toFixed(scale);
+    }
+
+    case RoundingMode.HalfDown: {
+      const decimalArr = decimal.split("");
+      if (/^50*$/.test(decimalArr.slice(scale).join(""))) {
+        decimalArr[scale] = "1";
+      }
+      return (+[int, decimalArr.join("")].join(".")).toFixed(scale);
+    }
+
+    case RoundingMode.HalfEven: {
+      const decimalArr = decimal.split("");
+      if (/^50*$/.test(decimalArr.slice(scale).join(""))) {
+        const lastNum = decimalArr[scale - 1] || int.slice(-1);
+        if (+lastNum % 2 === 0) {
+          decimalArr.splice(scale);
+        } else {
+          decimalArr[scale] = "9";
+        }
+      }
+
+      return (+[int, decimalArr.join("")].join(".")).toFixed(scale);
+    }
+
+    case RoundingMode.Unnecessary: {
+      if (+shrink(Math.ceil(+enlarge(n, scale)), scale) === n) {
+        return String(n);
+      }
+      throw Error(
+        "ArithmeticException: Rounding needed with the rounding mode being set to RoundingMode.UNNECESSARY",
+      );
+    }
+
+    default:
+      throw Error("Wrong RoundingMode");
   }
-  /* istanbul ignore next */
-  throw Error("Wrong RoundingMode");
 }
 
 export class DecimalFormat {
@@ -306,8 +321,9 @@ export class DecimalFormat {
     let [int, decimal] = num.split(".");
     if (length) {
       const intMatch = int.match(/([+-]?)(\d*)/);
-      // @ts-expect-error There will be no null case
-      int = intMatch[1] + intMatch[2].padStart(length, "0");
+      if (intMatch) {
+        int = intMatch[1] + intMatch[2].padStart(length, "0");
+      }
     } else if (int === "0") {
       int = "";
     }
