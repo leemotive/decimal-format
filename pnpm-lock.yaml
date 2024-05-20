@@ -13,7 +13,7 @@ importers:
         version: 1.7.3
       '@japa/assert':
         specifier: ^3.0.0
-        version: 3.0.0(@japa/runner@3.1.4)(openapi-types@1.3.4)
+        version: 3.0.0(@japa/runner@3.1.4)(openapi-types@12.1.3)
       '@japa/expect':
         specifier: ^3.0.2
         version: 3.0.2(@japa/runner@3.1.4)
@@ -24,8 +24,8 @@ importers:
         specifier: ^4.10.5
         version: 4.10.5
       typescript:
-        specifier: ^4.7.4
-        version: 4.9.5
+        specifier: ^5.4.5
+        version: 5.4.5
 
 packages:
 
@@ -982,6 +982,9 @@ packages:
   openapi-types@1.3.4:
     resolution: {integrity: sha512-h8rADpW3k/wepLdERKF0VKMAPdoFYNQCLGPmc/f8sgQ2dxUy+7sY4WAX2XDUDjhKTjbJVbxxofLkzy7f1/tE4g==}
 
+  openapi-types@12.1.3:
+    resolution: {integrity: sha512-N4YtSYJqghVu4iek2ZUvcN/0aqH1kRDuNqzcycDxhOUpg7GdvLa2F3DgS6yBNhInhv2r/6I0Flkn7CqL8+nIcw==}
+
   p-limit@4.0.0:
     resolution: {integrity: sha512-5b0R4txpzjPWVw/cXXUResoD4hb6U/x9BH08L7nw+GN1sezDzPdxeRvpc9c433fZhBan/wusjbCsqwqm4EIBIQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
@@ -1215,9 +1218,9 @@ packages:
     resolution: {integrity: sha512-8WbVAQAUlENo1q3c3zZYuy5k9VzBQvp8AX9WOtbvyWlLM1v5JaSRmjubLjzHF4JFtptjH/5c/i95yaElvcjC0A==}
     engines: {node: '>= 0.4'}
 
-  typescript@4.9.5:
-    resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
-    engines: {node: '>=4.2.0'}
+  typescript@5.4.5:
+    resolution: {integrity: sha512-vcI4UpRgg81oIRUFwR0WSIHKt11nJ7SAVlYNIu+QpqeyXP+gpQJy/Z4+F0aGxSE4MqwjyXvW/TzgkLAx2AGHwQ==}
+    engines: {node: '>=14.17'}
     hasBin: true
 
   unbox-primitive@1.0.2:
@@ -1281,14 +1284,14 @@ snapshots:
 
   '@apidevtools/swagger-methods@3.0.2': {}
 
-  '@apidevtools/swagger-parser@10.0.3(openapi-types@1.3.4)':
+  '@apidevtools/swagger-parser@10.0.3(openapi-types@12.1.3)':
     dependencies:
       '@apidevtools/json-schema-ref-parser': 9.1.2
       '@apidevtools/openapi-schemas': 2.1.0
       '@apidevtools/swagger-methods': 3.0.2
       '@jsdevtools/ono': 7.1.3
       call-me-maybe: 1.0.2
-      openapi-types: 1.3.4
+      openapi-types: 12.1.3
       z-schema: 5.0.5
 
   '@babel/code-frame@7.24.2':
@@ -1412,12 +1415,12 @@ snapshots:
   '@esbuild/win32-x64@0.20.2':
     optional: true
 
-  '@japa/assert@3.0.0(@japa/runner@3.1.4)(openapi-types@1.3.4)':
+  '@japa/assert@3.0.0(@japa/runner@3.1.4)(openapi-types@12.1.3)':
     dependencies:
       '@japa/runner': 3.1.4
       '@poppinss/macroable': 1.0.2
       '@types/chai': 4.3.16
-      api-contract-validator: 2.2.8(openapi-types@1.3.4)
+      api-contract-validator: 2.2.8(openapi-types@12.1.3)
       chai: 5.1.1
     transitivePeerDependencies:
       - openapi-types
@@ -1580,9 +1583,9 @@ snapshots:
 
   ansi-styles@6.2.1: {}
 
-  api-contract-validator@2.2.8(openapi-types@1.3.4):
+  api-contract-validator@2.2.8(openapi-types@12.1.3):
     dependencies:
-      api-schema-builder: 2.0.11(openapi-types@1.3.4)
+      api-schema-builder: 2.0.11(openapi-types@12.1.3)
       chalk: 3.0.0
       columnify: 1.6.0
       jest-diff: 25.5.0
@@ -1594,7 +1597,7 @@ snapshots:
     transitivePeerDependencies:
       - openapi-types
 
-  api-schema-builder@2.0.11(openapi-types@1.3.4):
+  api-schema-builder@2.0.11(openapi-types@12.1.3):
     dependencies:
       ajv: 6.12.6
       clone-deep: 4.0.1
@@ -1603,7 +1606,7 @@ snapshots:
       json-schema-deref-sync: 0.14.0
       lodash.get: 4.4.2
       openapi-schema-validator: 3.0.3
-      swagger-parser: 10.0.3(openapi-types@1.3.4)
+      swagger-parser: 10.0.3(openapi-types@12.1.3)
     transitivePeerDependencies:
       - openapi-types
 
@@ -2274,6 +2277,8 @@ snapshots:
 
   openapi-types@1.3.4: {}
 
+  openapi-types@12.1.3: {}
+
   p-limit@4.0.0:
     dependencies:
       yocto-queue: 1.0.0
@@ -2465,9 +2470,9 @@ snapshots:
 
   supports-color@9.4.0: {}
 
-  swagger-parser@10.0.3(openapi-types@1.3.4):
+  swagger-parser@10.0.3(openapi-types@12.1.3):
     dependencies:
-      '@apidevtools/swagger-parser': 10.0.3(openapi-types@1.3.4)
+      '@apidevtools/swagger-parser': 10.0.3(openapi-types@12.1.3)
     transitivePeerDependencies:
       - openapi-types
 
@@ -2539,7 +2544,7 @@ snapshots:
       typed-array-buffer: 1.0.2
       typed-array-byte-offset: 1.0.2
 
-  typescript@4.9.5: {}
+  typescript@5.4.5: {}
 
   unbox-primitive@1.0.2:
     dependencies:

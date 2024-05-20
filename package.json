@@ -1,6 +1,6 @@
 {
   "name": "@sachaw/decimal-format",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "format decimal",
   "type": "module",
   "module": "./dist/index.js",
@@ -11,7 +11,10 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist/lib",
+    "dist/resources"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "tsx bin/test.ts"
@@ -23,7 +26,10 @@
     "@japa/expect": "^3.0.2",
     "@japa/runner": "^3.1.4",
     "tsx": "^4.10.5",
-    "typescript": "^4.7.4"
+    "typescript": "^5.4.5"
   },
-  "keywords": ["decimal", "format"]
+  "keywords": [
+    "decimal",
+    "format"
+  ]
 }
