@@ -48,7 +48,7 @@ const resolveFormat = (pattern: string): FmtObject => {
   const prefix: string[] = [];
   const suffix: string[] = [];
   let withSign = false;
-  let percent: PercentEnum = 1; // 是否需要转化百分化或者千分化, 百分化为100, 千分化为1000
+  let percent: PercentEnum = 1; // Do you need to convert percentile or millennium into 100 and 1000?
   const fmt: string[] = [];
   let ch = "";
   let state = "PREFIX";
@@ -141,7 +141,7 @@ const resolveFormat = (pattern: string): FmtObject => {
   if (intFmt.endsWith(",")) {
     throw Error(`Malformed pattern "${pattern}"`);
   }
-  /* fmt只可能出现 #0., 四种符号,多个.的情况已经在前面排除，这里不需要这个if了
+  /* fmt can only appear #0., four symbols, multiple. The situation has been ruled out earlier, and this if is not needed here.
   if (/[^0#,]/.test(intFmt)) {
     throw Error(`Malformed pattern "${pattern}"`);
   }
@@ -155,10 +155,10 @@ const resolveFormat = (pattern: string): FmtObject => {
   if (lastIndexOfSeperator !== -1) {
     thousandSeparate = intFmt.length - lastIndexOfSeperator - 1;
   }
-  // @ts-expect-error 错误已经以被排除
+  // @ts-expect-error The error has been eliminated with
   const { length } = intFmt.replace(/,/g, "").match(/0*$/)[0];
   const maxScale = decimalFmt.length;
-  // @ts-expect-error 错误已经以被排除
+  // @ts-expect-error The error has been eliminated with
   const minScale = decimalFmt.match(/^0*/)[0].length;
   const radixPoint = fmtStr.endsWith(".");
 
@@ -177,7 +177,7 @@ const resolveFormat = (pattern: string): FmtObject => {
   return config;
 };
 
-// 支持0.0000005这种会转成5e-7这种科学记数法的数字
+// Supports numbers like 0.0000005 that can be converted into scientific notation like 5e-7
 function toString(n: number): string {
   const nStr = `${n}`;
   if (nStr.includes("e")) {
@@ -187,7 +187,7 @@ function toString(n: number): string {
   }
   return nStr;
 }
-// 小数点左移
+// Decimal point left
 function shrink(n: number, multi: number) {
   if (multi < 0) {
     /* istanbul ignore next */
@@ -203,7 +203,7 @@ function shrink(n: number, multi: number) {
     .replace(/^-?/, `$&${"0".repeat(multi)}`)
     .replace(new RegExp(`(\\d{${multi}})(\\.|$)`), ".$1");
 }
-// 小数点右移
+// Shift right decimal point
 function enlarge(n: number, multi: number): string {
   if (multi < 0) {
     return shrink(n, -multi);
@@ -216,7 +216,7 @@ function enlarge(n: number, multi: number): string {
   return num.replace(new RegExp(`\\.(\\d{${multi}})`), "$1.");
 }
 
-// 防止1.005.toFixed(2) === 1.00 的问题出现
+// Prevent the problem of 1.005.toFixed(2) === 1.00
 function adjust(n: number, scale: number) {
   const num = toString(n);
   if (num.includes(".")) {
@@ -283,7 +283,7 @@ function round(n: number, scale: number, roundingMode: RoundingType): string {
   throw Error("Wrong RoundingMode");
 }
 
-class DecimalFormat {
+export class DecimalFormat {
   private config: FmtObject;
 
   private roundingMode: RoundingType;
@@ -313,7 +313,7 @@ class DecimalFormat {
     if (Number.isNaN(num)) {
       throw Error("not a valid number");
     }
-    // 有千分位，百分位的先扩大对应倍数
+    // If there are thousandths, if there are hundredths, first expand the corresponding multiple.
     num = enlarge(num, Math.log10(percent));
 
     if (maxScale !== undefined) {
@@ -322,13 +322,13 @@ class DecimalFormat {
     let [int, decimal] = num.split(".");
     if (length) {
       const intMatch = int.match(/([+-]?)(\d*)/);
-      // @ts-expect-error 不会有 null 情况
+      // @ts-expect-error There will be no null case
       int = intMatch[1] + intMatch[2].padStart(length, "0");
     } else if (int === "0") {
       int = "";
     }
     if (thousandSeparate && thousandSeparate < int.length) {
-      // 整数部分如果需要格式化
+      // If the integer part needs to be formatted
       int = int.replace(
         new RegExp(
           `(\\d{1,${thousandSeparate}})(?=(?:\\d{${thousandSeparate}})+$)`,
@@ -358,5 +358,3 @@ class DecimalFormat {
     return `${prefix}${num}${suffix}`;
   }
 }
-
-export default DecimalFormat;
