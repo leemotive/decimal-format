@@ -1,5 +1,5 @@
 {
-  "name": "decimal-format",
+  "name": "@sachaw/decimal-format",
   "version": "1.0.0",
   "description": "format decimal",
   "type": "module",
