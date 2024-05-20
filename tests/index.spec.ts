@@ -90,44 +90,44 @@ test.group("Normal Tests", () => {
 
   test("Will automatically convert to scientific notation", ({ expect }) => {
     const df = new DecimalFormat("0.00####");
-    df.setRoundingMode(RoundingMode.down);
+    df.setRoundingMode(RoundingMode.Down);
     expect(df.format(0.0000005)).toBe("0.00");
-    df.setRoundingMode(RoundingMode.halfUp);
+    df.setRoundingMode(RoundingMode.HalfUp);
     expect(df.format(0.0000005)).toBe("0.000001");
   });
 
   test("RoundingMode.UP", ({ expect }) => {
-    const df = new DecimalFormat("0.00##", RoundingMode.up);
+    const df = new DecimalFormat("0.00##", RoundingMode.Up);
     expect(df.format(13.12361)).toBe("13.1237");
     expect(df.format(-13.12361)).toBe("-13.1237");
   });
 
   test("RoundingMode.DOWN", ({ expect }) => {
-    const df = new DecimalFormat("0.00##", RoundingMode.down);
+    const df = new DecimalFormat("0.00##", RoundingMode.Down);
     expect(df.format(13.13889)).toBe("13.1388");
     expect(df.format(-13.13889)).toBe("-13.1388");
   });
 
   test("RoundingMode.CEILING", ({ expect }) => {
-    const df = new DecimalFormat("0.00", RoundingMode.ceiling);
+    const df = new DecimalFormat("0.00", RoundingMode.Ceiling);
     expect(df.format(13.1301)).toBe("13.14");
     expect(df.format(-13.1301)).toBe("-13.13");
   });
 
   test("RoundingMode.FLOOR", ({ expect }) => {
-    const df = new DecimalFormat("0.00", RoundingMode.floor);
+    const df = new DecimalFormat("0.00", RoundingMode.Floor);
     expect(df.format(13.137)).toBe("13.13");
     expect(df.format(-13.1301)).toBe("-13.14");
   });
 
   test("RoundingMode.HALF_UP", ({ expect }) => {
-    const df = new DecimalFormat("0.0", RoundingMode.halfUp);
+    const df = new DecimalFormat("0.0", RoundingMode.HalfUp);
     expect(df.format(13.15)).toBe("13.2");
     expect(df.format(-13.15)).toBe("-13.2");
   });
 
   test("RoundingMode.HALF_DOWN", ({ expect }) => {
-    const df = new DecimalFormat("0.0", RoundingMode.halfDown);
+    const df = new DecimalFormat("0.0", RoundingMode.HalfDown);
     expect(df.format(13.157)).toBe("13.2");
     expect(df.format(13.15)).toBe("13.1");
     expect(df.format(-13.157)).toBe("-13.2");
@@ -135,13 +135,13 @@ test.group("Normal Tests", () => {
   });
 
   test("RoundingMode.HALF_EVEN", ({ expect }) => {
-    const df = new DecimalFormat("0.0", RoundingMode.halfEven);
+    const df = new DecimalFormat("0.0", RoundingMode.HalfEven);
     expect(df.format(13.25)).toBe("13.2");
     expect(df.format(13.251)).toBe("13.3");
     expect(df.format(-13.25)).toBe("-13.2");
     expect(df.format(-13.251)).toBe("-13.3");
 
-    const df1 = new DecimalFormat("0", RoundingMode.halfEven);
+    const df1 = new DecimalFormat("0", RoundingMode.HalfEven);
     expect(df1.format(12.5)).toBe("12");
     expect(df1.format(12.51)).toBe("13");
     expect(df1.format(12.5)).toBe("12");
@@ -149,7 +149,7 @@ test.group("Normal Tests", () => {
   });
 
   test("RoundingMode.UNNECESSARY", ({ expect }) => {
-    const df = new DecimalFormat("0.0", RoundingMode.unnecessary);
+    const df = new DecimalFormat("0.0", RoundingMode.Unnecessary);
     expect(df.format.bind(df, 1.45)).toThrow();
     expect(df.format(6.9)).toBe("6.9");
     expect(df.format(6)).toBe("6.0");

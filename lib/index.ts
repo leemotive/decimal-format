@@ -15,17 +15,16 @@ type FmtCacheType = {
   [k: string]: FmtObject;
 };
 
-
 export enum RoundingMode {
-  up = 0,
-  down = 1,
-  ceiling = 2,
-  floor = 3,
-  halfUp = 4,
-  halfDown = 5,
-  halfEven = 6,
-  unnecessary = 7,
-};
+  Up = 0,
+  Down = 1,
+  Ceiling = 2,
+  Floor = 3,
+  HalfUp = 4,
+  HalfDown = 5,
+  HalfEven = 6,
+  Unnecessary = 7,
+}
 
 const formatCache: FmtCacheType = {};
 const fmtReg = /[0#.,]/;
@@ -221,29 +220,29 @@ function round(n: number, scale: number, roundingMode: RoundingMode): string {
   }
 
   decimal = decimal.padEnd(scale + 1, "0");
-  if (roundingMode === RoundingMode.ceiling) {
+  if (roundingMode === RoundingMode.Ceiling) {
     return shrink(Math.ceil(+enlarge(n, scale)), scale);
   }
-  if (roundingMode === RoundingMode.floor) {
+  if (roundingMode === RoundingMode.Floor) {
     return shrink(Math.floor(+enlarge(n, scale)), scale);
   }
-  if (roundingMode === RoundingMode.up) {
+  if (roundingMode === RoundingMode.Up) {
     return `${sign}${shrink(Math.ceil(+enlarge(Math.abs(n), scale)), scale)}`;
   }
-  if (roundingMode === RoundingMode.down) {
+  if (roundingMode === RoundingMode.Down) {
     return `${sign}${shrink(Math.floor(+enlarge(Math.abs(n), scale)), scale)}`;
   }
-  if (roundingMode === RoundingMode.halfUp) {
+  if (roundingMode === RoundingMode.HalfUp) {
     return (+adjust(n, scale)).toFixed(scale);
   }
-  if (roundingMode === RoundingMode.halfDown) {
+  if (roundingMode === RoundingMode.HalfDown) {
     const decimalArr = decimal.split("");
     if (/^50*$/.test(decimalArr.slice(scale).join(""))) {
       decimalArr[scale] = "1";
     }
     return (+[int, decimalArr.join("")].join(".")).toFixed(scale);
   }
-  if (roundingMode === RoundingMode.halfEven) {
+  if (roundingMode === RoundingMode.HalfEven) {
     const decimalArr = decimal.split("");
     if (/^50*$/.test(decimalArr.slice(scale).join(""))) {
       const lastNum = decimalArr[scale - 1] || int.slice(-1);
@@ -256,7 +255,7 @@ function round(n: number, scale: number, roundingMode: RoundingMode): string {
 
     return (+[int, decimalArr.join("")].join(".")).toFixed(scale);
   }
-  if (roundingMode === RoundingMode.unnecessary) {
+  if (roundingMode === RoundingMode.Unnecessary) {
     if (+shrink(Math.ceil(+enlarge(n, scale)), scale) === n) {
       return String(n);
     }
@@ -273,7 +272,7 @@ export class DecimalFormat {
 
   private roundingMode: RoundingMode;
 
-  constructor(format = "", roundingMode: RoundingMode = RoundingMode.halfUp) {
+  constructor(format = "", roundingMode: RoundingMode = RoundingMode.HalfUp) {
     this.config = { ...resolveFormat(format) };
     this.roundingMode = roundingMode;
   }
