@@ -17,6 +17,7 @@
   "license": "ISC",
   "devDependencies": {
     "@babel/eslint-parser": "^7.18.9",
+    "@biomejs/biome": "^1.7.3",
     "@rollup/plugin-typescript": "^8.3.4",
     "@types/jest": "^28.1.7",
     "@typescript-eslint/eslint-plugin": "^5.33.1",
@@ -51,6 +52,5 @@
   "bugs": {
     "url": "https://github.com/leemotive/decimal-format/issues"
   },
-  "homepage": "https://github.com/leemotive/decimal-format#readme",
-  "dependencies": {}
+  "homepage": "https://github.com/leemotive/decimal-format#readme"
 }
