@@ -12,8 +12,7 @@
     "build": "tsc",
     "test": "tsx bin/test.ts"
   },
-  "author": "leemotive@163.com",
-  "license": "ISC",
+  "license": "GPL-3.0-only",
   "devDependencies": {
     "@biomejs/biome": "^1.7.3",
     "@japa/assert": "^3.0.0",
@@ -26,16 +25,8 @@
     "lib": "lib",
     "test": "test"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/leemotive/decimal-format.git"
-  },
   "keywords": [
     "decimal",
     "format"
-  ],
-  "bugs": {
-    "url": "https://github.com/leemotive/decimal-format/issues"
-  },
-  "homepage": "https://github.com/leemotive/decimal-format#readme"
+  ]
 }
