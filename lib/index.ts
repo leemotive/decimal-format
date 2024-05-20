@@ -15,7 +15,6 @@ type FmtCacheType = {
   [k: string]: FmtObject;
 };
 
-export type RoundingType = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export enum RoundingMode {
   up = 0,
@@ -214,7 +213,7 @@ function adjust(n: number, scale: number) {
   return n;
 }
 
-function round(n: number, scale: number, roundingMode: RoundingType): string {
+function round(n: number, scale: number, roundingMode: RoundingMode): string {
   let [int, decimal] = toString(n).split(".");
   const sign = n > 0 ? "" : "-";
   if (!decimal) {
@@ -272,14 +271,14 @@ function round(n: number, scale: number, roundingMode: RoundingType): string {
 export class DecimalFormat {
   private config: FmtObject;
 
-  private roundingMode: RoundingType;
+  private roundingMode: RoundingMode;
 
-  constructor(format = "", roundingMode: RoundingType = RoundingMode.halfUp) {
+  constructor(format = "", roundingMode: RoundingMode = RoundingMode.halfUp) {
     this.config = { ...resolveFormat(format) };
     this.roundingMode = roundingMode;
   }
 
-  setRoundingMode(roundingMode: RoundingType) {
+  setRoundingMode(roundingMode: RoundingMode) {
     this.roundingMode = roundingMode;
   }
 
