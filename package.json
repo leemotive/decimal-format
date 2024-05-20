@@ -11,10 +11,7 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": [
-    "dist/lib",
-    "dist/resources"
-  ],
+  "files": ["dist/lib", "dist/resources"],
   "scripts": {
     "build": "tsc",
     "test": "tsx bin/test.ts"
@@ -28,8 +25,5 @@
     "tsx": "^4.10.5",
     "typescript": "^5.4.5"
   },
-  "keywords": [
-    "decimal",
-    "format"
-  ]
+  "keywords": ["decimal", "format"]
 }
