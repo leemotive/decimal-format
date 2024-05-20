@@ -3,11 +3,14 @@
   "version": "4.0.0",
   "description": "format decimal",
   "type": "module",
-  "main": "lib/index.js",
-  "module": "es/index.mjs",
-  "jsnext:main": "es/index.mjs",
-  "browser": "dist/decimalFormat.min.js",
-  "typings": "./typings/index.d.ts",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "test": "tsx bin/test.ts"
