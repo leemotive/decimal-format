@@ -1,20 +1,13 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "useDefineForClassFields": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "./dist",
+    "esModuleInterop": false,
+    "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "jsx": "preserve",
-    "sourceMap": false,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "esModuleInterop": true,
-    "lib": ["ESNext", "DOM"],
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true,
-    "declaration": false,
-  },
-  "include": ["./index.ts", "test/*.ts", "typings/*.d.ts"],
-  "exclude": ["node_modules", "dist", "es", "lib", "coverage"]
+    "declaration": true
+  }
 }

@@ -1,56 +1,29 @@
 {
-  "name": "decimal-format",
-  "version": "3.0.1",
+  "name": "@sachaw/decimal-format",
+  "version": "1.0.2",
   "description": "format decimal",
-  "main": "lib/index.js",
-  "module": "es/index.mjs",
-  "jsnext:main": "es/index.mjs",
-  "browser": "dist/decimalFormat.min.js",
-  "typings": "./typings/index.d.ts",
+  "type": "module",
+  "module": "./dist/lib/index.js",
+  "types": "./dist/lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/lib/index.js",
+      "types": "./dist/lib/index.d.ts"
+    }
+  },
+  "files": ["dist/lib", "dist/resources"],
   "scripts": {
-    "test": "jest",
-    "build": "rm -rf dist es lib && rollup -c && uglifyjs dist/decimalFormat.js -o dist/decimalFormat.min.js",
-    "prepare": "npx husky install",
-    "prepublish": "npm run build"
+    "build": "tsc",
+    "test": "tsx bin/test.ts"
   },
-  "author": "leemotive@163.com",
-  "license": "ISC",
+  "license": "GPL-3.0-only",
   "devDependencies": {
-    "@babel/eslint-parser": "^7.18.9",
-    "@rollup/plugin-typescript": "^8.3.4",
-    "@types/jest": "^28.1.7",
-    "@typescript-eslint/eslint-plugin": "^5.33.1",
-    "@typescript-eslint/parser": "^5.33.1",
-    "eslint": "^8.22.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-import": "^2.26.0",
-    "husky": "^8.0.1",
-    "jest": "^28.1.3",
-    "lint-staged": "^10.2.11",
-    "prettier": "^2.7.1",
-    "rollup": "^2.78.0",
-    "rollup-plugin-dts": "^4.2.2",
-    "ts-jest": "^28.0.8",
-    "tslib": "^2.4.0",
-    "typescript": "^4.7.4",
-    "uglify-es": "^3.3.9"
+    "@biomejs/biome": "^1.7.3",
+    "@japa/assert": "^3.0.0",
+    "@japa/expect": "^3.0.2",
+    "@japa/runner": "^3.1.4",
+    "tsx": "^4.10.5",
+    "typescript": "^5.4.5"
   },
-  "directories": {
-    "lib": "lib",
-    "test": "test"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/leemotive/decimal-format.git"
-  },
-  "keywords": [
-    "decimal",
-    "format"
-  ],
-  "bugs": {
-    "url": "https://github.com/leemotive/decimal-format/issues"
-  },
-  "homepage": "https://github.com/leemotive/decimal-format#readme",
-  "dependencies": {}
+  "keywords": ["decimal", "format"]
 }
