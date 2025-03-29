@@ -1,29 +1,47 @@
 {
-  "name": "@sachaw/decimal-format",
-  "version": "1.0.2",
+  "name": "decimal-format",
+  "version": "4.0.0",
   "description": "format decimal",
-  "type": "module",
-  "module": "./dist/lib/index.js",
-  "types": "./dist/lib/index.d.ts",
+  "jsnext:main": "es/index.mjs",
+  "browser": "dist/decimalFormat.min.js",
+  "main": "./lib/index.js",
+  "module": "./es/index.mjs",
+  "types": "./typings/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/lib/index.js",
-      "types": "./dist/lib/index.d.ts"
+      "types": "./typings/index.d.ts",
+      "umd": "./dist/decimalFormat.min.js",
+      "import": "./es/index.mjs",
+      "require": "./lib/index.js"
     }
   },
-  "files": ["dist/lib", "dist/resources"],
+  "files": [
+    "lib",
+    "es",
+    "dist",
+    "typings"
+  ],
   "scripts": {
-    "build": "tsc",
-    "test": "tsx bin/test.ts"
+    "build": "rm -rf dist/ es/ lib/ coverage/ typings/ && rollup -c && uglifyjs dist/decimalFormat.js -o dist/decimalFormat.min.js",
+    "prepare": "husky",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "license": "GPL-3.0-only",
   "devDependencies": {
-    "@biomejs/biome": "^1.7.3",
-    "@japa/assert": "^3.0.0",
-    "@japa/expect": "^3.0.2",
-    "@japa/runner": "^3.1.4",
-    "tsx": "^4.10.5",
-    "typescript": "^5.4.5"
+    "@biomejs/biome": "^1.9.4",
+    "@rollup/plugin-typescript": "^12.1.2",
+    "@vitest/coverage-v8": "3.0.9",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.0",
+    "rollup": "^4.38.0",
+    "rollup-plugin-dts": "^6.2.1",
+    "typescript": "^5.8.2",
+    "uglify-es": "^3.3.9",
+    "vitest": "^3.0.9"
   },
-  "keywords": ["decimal", "format"]
+  "keywords": [
+    "decimal",
+    "format"
+  ]
 }

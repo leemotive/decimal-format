@@ -6,9 +6,9 @@ format decimal numbers with a specific pattern
 ```
 $ npm install decimal-format --save
 ```
-or use yarn
+or use pnpm
 ```
-$ yarn add decimal-format --save
+$ pnpm add decimal-format --save
 ```
 
 ## Usage
