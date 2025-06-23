@@ -15,28 +15,33 @@ type FmtCacheType = {
   [k: string]: FmtObject;
 };
 
-export type RoundingType = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
-type ModeType = {
-  UP: 0;
-  DOWN: 1;
-  CEILING: 2;
-  FLOOR: 3;
-  HALF_UP: 4;
-  HALF_DOWN: 5;
-  HALF_EVEN: 6;
-  UNNECESSARY: 7;
+export const RoundingMode = {
+  get Up() {
+    return 0 as const;
+  },
+  get Down() {
+    return 1 as const;
+  },
+  get Ceiling() {
+    return 2 as const;
+  },
+  get Floor() {
+    return 3 as const;
+  },
+  get HalfUp() {
+    return 4 as const;
+  },
+  get HalfDown() {
+    return 5 as const;
+  },
+  get HalfEven() {
+    return 6 as const;
+  },
+  get Unnecessary() {
+    return 7 as const;
+  },
 };
-
-export const RoundingMode: ModeType = {
-  UP: 0,
-  DOWN: 1,
-  CEILING: 2,
-  FLOOR: 3,
-  HALF_UP: 4,
-  HALF_DOWN: 5,
-  HALF_EVEN: 6,
-  UNNECESSARY: 7,
-};
+type RoundingModeType = (typeof RoundingMode)[keyof typeof RoundingMode];
 
 const formatCache: FmtCacheType = {};
 const fmtReg = /[0#.,]/;
@@ -48,13 +53,13 @@ const resolveFormat = (pattern: string): FmtObject => {
   const prefix: string[] = [];
   const suffix: string[] = [];
   let withSign = false;
-  let percent: PercentEnum = 1; // 是否需要转化百分化或者千分化, 百分化为100, 千分化为1000
+  let percent: PercentEnum = 1; // Do you need to convert percentile or millennium into 100 and 1000?
   const fmt: string[] = [];
   let ch = '';
   let state = 'PREFIX';
-  let escape = false;
+  let shouldEscape = false;
 
-  let temp;
+  let temp: string[] = [];
   function append(c: string, i: number) {
     if (state === 'PREFIX') {
       temp = prefix;
@@ -64,7 +69,7 @@ const resolveFormat = (pattern: string): FmtObject => {
       temp = suffix;
     }
     temp.push(c);
-    if (escape) {
+    if (shouldEscape) {
       return;
     }
 
@@ -89,20 +94,18 @@ const resolveFormat = (pattern: string): FmtObject => {
       state = 'SUFFIX';
     }
   }
-  // eslint-disable-next-line no-plusplus
   for (let i = 0; i < pattern.length; i++) {
     ch = pattern[i];
-    if (escape) {
+    if (shouldEscape) {
       append(ch, i);
-      escape = false;
-      // eslint-disable-next-line no-continue
+      shouldEscape = false;
       continue;
     }
 
     setState(ch);
 
     if (ch === '\\') {
-      escape = true;
+      shouldEscape = true;
     } else {
       append(ch, i);
     }
@@ -137,7 +140,7 @@ const resolveFormat = (pattern: string): FmtObject => {
   if (intFmt.endsWith(',')) {
     throw Error(`Malformed pattern "${pattern}"`);
   }
-  /* fmt只可能出现 #0., 四种符号,多个.的情况已经在前面排除，这里不需要这个if了
+  /* fmt can only appear #0., four symbols, multiple. The situation has been ruled out earlier, and this if is not needed here.
   if (/[^0#,]/.test(intFmt)) {
     throw Error(`Malformed pattern "${pattern}"`);
   }
@@ -151,11 +154,15 @@ const resolveFormat = (pattern: string): FmtObject => {
   if (lastIndexOfSeperator !== -1) {
     thousandSeparate = intFmt.length - lastIndexOfSeperator - 1;
   }
-  // @ts-expect-error 错误已经以被排除
-  const { length } = intFmt.replace(/,/g, '').match(/0*$/)[0];
+  const trailingZeros = intFmt.replace(/,/g, '').match(/0*$/)?.[0];
+
+  if (trailingZeros === undefined) {
+    throw Error(`Malformed pattern "${pattern}"`);
+  }
+
+  const { length } = trailingZeros;
   const maxScale = decimalFmt.length;
-  // @ts-expect-error 错误已经以被排除
-  const minScale = decimalFmt.match(/^0*/)[0].length;
+  const minScale = decimalFmt.match(/^0*/)?.[0].length;
   const radixPoint = fmtStr.endsWith('.');
 
   const config: FmtObject = {
@@ -173,36 +180,32 @@ const resolveFormat = (pattern: string): FmtObject => {
   return config;
 };
 
-// 支持0.0000005这种会转成5e-7这种科学记数法的数字
-function toString(n: number): string {
+// Supports numbers like 0.0000005 that can be converted into scientific notation like 5e-7
+function convertToString(n: number): string {
   const nStr = `${n}`;
   if (nStr.includes('e')) {
     const nArr = nStr.split('e');
-    // eslint-disable-next-line no-use-before-define
     return enlarge(+nArr[0], +nArr[1]);
   }
   return nStr;
 }
-// 小数点左移
+// Decimal point left
 function shrink(n: number, multi: number) {
   if (multi < 0) {
-    /* istanbul ignore next */
-    // eslint-disable-next-line no-use-before-define
     return enlarge(n, -multi);
   }
-  const nStr = toString(n);
+  const nStr = convertToString(n);
   if (!multi) {
-    /* istanbul ignore next */
     return nStr;
   }
   return `${nStr}`.replace(/^-?/, `$&${'0'.repeat(multi)}`).replace(new RegExp(`(\\d{${multi}})(\\.|$)`), '.$1');
 }
-// 小数点右移
+// Shift right decimal point
 function enlarge(n: number, multi: number): string {
   if (multi < 0) {
     return shrink(n, -multi);
   }
-  const nStr = toString(n);
+  const nStr = convertToString(n);
   if (!multi) {
     return nStr;
   }
@@ -210,82 +213,93 @@ function enlarge(n: number, multi: number): string {
   return num.replace(new RegExp(`\\.(\\d{${multi}})`), '$1.');
 }
 
-// 防止1.005.toFixed(2) === 1.00 的问题出现
+// Prevent the problem of 1.005.toFixed(2) === 1.00
 function adjust(n: number, scale: number) {
-  const num = toString(n);
+  const num = convertToString(n);
   if (num.includes('.')) {
     const arr = num.split('.');
     arr[1] = `${arr[1].padEnd(scale, '0')}1`;
     return +arr.join('.');
   }
-  /* istanbul ignore next */
   return n;
 }
 
-function round(n: number, scale: number, roundingMode: RoundingType): string {
-  let [int, decimal] = toString(n).split('.');
+function round(n: number, scale: number, roundingMode: RoundingModeType): string {
+  let [int, decimal] = convertToString(n).split('.');
   const sign = n > 0 ? '' : '-';
   if (!decimal) {
     return n.toFixed(scale);
   }
 
   decimal = decimal.padEnd(scale + 1, '0');
-  if (roundingMode === RoundingMode.CEILING) {
-    return shrink(Math.ceil(+enlarge(n, scale)), scale);
-  }
-  if (roundingMode === RoundingMode.FLOOR) {
-    return shrink(Math.floor(+enlarge(n, scale)), scale);
-  }
-  if (roundingMode === RoundingMode.UP) {
-    return `${sign}${shrink(Math.ceil(+enlarge(Math.abs(n), scale)), scale)}`;
-  }
-  if (roundingMode === RoundingMode.DOWN) {
-    return `${sign}${shrink(Math.floor(+enlarge(Math.abs(n), scale)), scale)}`;
-  }
-  if (roundingMode === RoundingMode.HALF_UP) {
-    return (+adjust(n, scale)).toFixed(scale);
-  }
-  if (roundingMode === RoundingMode.HALF_DOWN) {
-    const decimalArr = decimal.split('');
-    if (/^50*$/.test(decimalArr.slice(scale).join(''))) {
-      decimalArr[scale] = '1';
-    }
-    return (+[int, decimalArr.join('')].join('.')).toFixed(scale);
-  }
-  if (roundingMode === RoundingMode.HALF_EVEN) {
-    const decimalArr = decimal.split('');
-    if (/^50*$/.test(decimalArr.slice(scale).join(''))) {
-      const lastNum = decimalArr[scale - 1] || int.slice(-1);
-      if (+lastNum % 2 === 0) {
-        decimalArr.splice(scale);
-      } else {
-        decimalArr[scale] = '9';
-      }
+
+  switch (roundingMode) {
+    case RoundingMode.Ceiling: {
+      return shrink(Math.ceil(+enlarge(n, scale)), scale);
     }
 
-    return (+[int, decimalArr.join('')].join('.')).toFixed(scale);
-  }
-  if (roundingMode === RoundingMode.UNNECESSARY) {
-    if (+shrink(Math.ceil(+enlarge(n, scale)), scale) === n) {
-      return String(n);
+    case RoundingMode.Floor: {
+      return shrink(Math.floor(+enlarge(n, scale)), scale);
     }
-    throw Error('ArithmeticException: Rounding needed with the rounding mode being set to RoundingMode.UNNECESSARY');
+
+    case RoundingMode.Up: {
+      return `${sign}${shrink(Math.ceil(+enlarge(Math.abs(n), scale)), scale)}`;
+    }
+
+    case RoundingMode.Down: {
+      return `${sign}${shrink(Math.floor(+enlarge(Math.abs(n), scale)), scale)}`;
+    }
+
+    case RoundingMode.HalfUp: {
+      return (+adjust(n, scale)).toFixed(scale);
+    }
+
+    case RoundingMode.HalfDown: {
+      const decimalArr = decimal.split('');
+      if (/^50*$/.test(decimalArr.slice(scale).join(''))) {
+        decimalArr[scale] = '1';
+      }
+      return (+[int, decimalArr.join('')].join('.')).toFixed(scale);
+    }
+
+    case RoundingMode.HalfEven: {
+      const decimalArr = decimal.split('');
+      if (/^50*$/.test(decimalArr.slice(scale).join(''))) {
+        const lastNum = decimalArr[scale - 1] || int.slice(-1);
+        if (+lastNum % 2 === 0) {
+          decimalArr.splice(scale);
+        } else {
+          decimalArr[scale] = '9';
+        }
+      }
+      return (+[int, decimalArr.join('')].join('.')).toFixed(scale);
+    }
+
+    case RoundingMode.Unnecessary: {
+      if (+shrink(Math.ceil(+enlarge(n, scale)), scale) === n) {
+        return String(n);
+      }
+      throw Error('ArithmeticException: Rounding needed with the rounding mode being set to RoundingMode.UNNECESSARY');
+    }
+
+    default: {
+      const exhaustiveCheck: never = roundingMode;
+      throw Error(`Unhandled RoundingMode: ${exhaustiveCheck}`);
+    }
   }
-  /* istanbul ignore next */
-  throw Error('Wrong RoundingMode');
 }
 
-class DecimalFormat {
+export default class DecimalFormat {
   private config: FmtObject;
 
-  private roundingMode: RoundingType;
+  private roundingMode: RoundingModeType;
 
-  constructor(format = '', roundingMode: RoundingType = RoundingMode.HALF_UP) {
+  constructor(format = '', roundingMode: RoundingModeType = RoundingMode.HalfUp) {
     this.config = { ...resolveFormat(format) };
     this.roundingMode = roundingMode;
   }
 
-  setRoundingMode(roundingMode: RoundingType) {
+  setRoundingMode(roundingMode: RoundingModeType) {
     this.roundingMode = roundingMode;
   }
 
@@ -295,7 +309,7 @@ class DecimalFormat {
     if (Number.isNaN(num)) {
       throw Error('not a valid number');
     }
-    // 有千分位，百分位的先扩大对应倍数
+    // If there are thousandths, if there are hundredths, first expand the corresponding multiple.
     num = enlarge(num, Math.log10(percent));
 
     if (maxScale !== undefined) {
@@ -304,13 +318,14 @@ class DecimalFormat {
     let [int, decimal] = num.split('.');
     if (length) {
       const intMatch = int.match(/([+-]?)(\d*)/);
-      // @ts-expect-error 不会有 null 情况
-      int = intMatch[1] + intMatch[2].padStart(length, '0');
+      if (intMatch) {
+        int = intMatch[1] + intMatch[2].padStart(length, '0');
+      }
     } else if (int === '0') {
       int = '';
     }
     if (thousandSeparate && thousandSeparate < int.length) {
-      // 整数部分如果需要格式化
+      // If the integer part needs to be formatted
       int = int.replace(new RegExp(`(\\d{1,${thousandSeparate}})(?=(?:\\d{${thousandSeparate}})+$)`, 'g'), '$1,');
     }
 
@@ -334,5 +349,3 @@ class DecimalFormat {
     return `${prefix}${num}${suffix}`;
   }
 }
-
-export default DecimalFormat;

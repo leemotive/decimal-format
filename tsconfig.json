@@ -15,6 +15,6 @@
     "allowSyntheticDefaultImports": true,
     "declaration": false,
   },
-  "include": ["./index.ts", "test/*.ts", "typings/*.d.ts"],
+  "include": ["./index.ts", "tests/*.ts", "typings/*.d.ts"],
   "exclude": ["node_modules", "dist", "es", "lib", "coverage"]
 }
