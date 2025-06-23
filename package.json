@@ -1,6 +1,6 @@
 {
   "name": "decimal-format",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "format decimal",
   "jsnext:main": "es/index.mjs",
   "browser": "dist/decimalFormat.min.js",
@@ -15,19 +15,14 @@
       "require": "./lib/index.js"
     }
   },
-  "files": [
-    "lib",
-    "es",
-    "dist",
-    "typings"
-  ],
+  "files": ["lib", "es", "dist", "typings"],
   "scripts": {
     "build": "rm -rf dist/ es/ lib/ coverage/ typings/ && rollup -c && uglifyjs dist/decimalFormat.js -o dist/decimalFormat.min.js",
     "prepare": "husky",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
-  "license": "GPL-3.0-only",
+  "license": "ISC",
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@rollup/plugin-typescript": "^12.1.2",
@@ -40,8 +35,5 @@
     "uglify-es": "^3.3.9",
     "vitest": "^3.0.9"
   },
-  "keywords": [
-    "decimal",
-    "format"
-  ]
+  "keywords": ["decimal", "format"]
 }
