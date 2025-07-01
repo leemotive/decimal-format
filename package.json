@@ -1,6 +1,6 @@
 {
   "name": "decimal-format",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "format decimal",
   "jsnext:main": "es/index.mjs",
   "browser": "dist/decimalFormat.min.js",
@@ -30,7 +30,7 @@
   "bugs": {
     "url": "https://github.com/leemotive/decimal-format/issues"
   },
-  "homepage": "https://github.com/leemotive/yatter/",
+  "homepage": "https://github.com/leemotive/decimal-format/",
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@rollup/plugin-typescript": "^12.1.2",
