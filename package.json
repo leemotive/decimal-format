@@ -1,6 +1,6 @@
 {
   "name": "decimal-format",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "format decimal",
   "jsnext:main": "es/index.mjs",
   "browser": "dist/decimalFormat.min.js",
@@ -23,6 +23,14 @@
     "test:coverage": "vitest run --coverage"
   },
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leemotive/decimal-format.git"
+  },
+  "bugs": {
+    "url": "https://github.com/leemotive/decimal-format/issues"
+  },
+  "homepage": "https://github.com/leemotive/yatter/",
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@rollup/plugin-typescript": "^12.1.2",
