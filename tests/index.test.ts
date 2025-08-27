@@ -1,4 +1,4 @@
-import { test, describe } from 'vitest';
+import { describe, test } from 'vitest';
 import DecimalFormat, { RoundingMode } from '../index';
 
 describe('Normal Tests', () => {
@@ -150,6 +150,40 @@ describe('Normal Tests', () => {
     expect(df.format.bind(df, 1.45)).toThrow();
     expect(df.format(6.9)).toBe('6.9');
     expect(df.format(6)).toBe('6.0');
+  });
+});
+
+describe('Scientific Tests', () => {
+  test('no significand', ({ expect }) => {
+    const df = new DecimalFormat('E');
+    expect(df.format(1234)).toBe('1.234E3');
+    expect(df.format(-1234)).toBe('-1.234E3');
+    expect(df.format(0.01234)).toBe('1.234E-2');
+    expect(df.format(-0.01234)).toBe('-1.234E-2');
+  });
+
+  test('exponent sign', ({ expect }) => {
+    const df = new DecimalFormat('0.00#E+');
+    expect(df.format(12345)).toBe('1.235E+4');
+    expect(df.format(-12)).toBe('-1.20E+1');
+  });
+
+  test('no exponent', ({ expect }) => {
+    const df = new DecimalFormat('0.00#E', RoundingMode.Ceiling);
+    expect(df.format(1.2341)).toBe('1.235');
+    expect(df.format(12341)).toBe('1.235E4');
+    expect(df.format(9.9991)).toBe('1.00E1');
+  });
+
+  test('percent', ({ expect }) => {
+    const df = new DecimalFormat('0.00#E%', RoundingMode.Floor);
+    expect(df.format(0.12349)).toBe('1.234E1%');
+  });
+
+  test('prefix/suffix', ({ expect }) => {
+    const df = new DecimalFormat('R0.00#E++', RoundingMode.Ceiling);
+    expect(df.format(1.2341)).toBe('R1.235+');
+    expect(df.format(12341)).toBe('R1.235E+4+');
   });
 });
 

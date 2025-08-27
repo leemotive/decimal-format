@@ -10,6 +10,8 @@ type FmtObject = {
   minScale?: number;
   length?: number;
   radixPoint?: boolean;
+  scientificChar?: string;
+  exponentSign?: boolean;
 };
 type FmtCacheType = {
   [k: string]: FmtObject;
@@ -44,7 +46,8 @@ export const RoundingMode = {
 type RoundingModeType = (typeof RoundingMode)[keyof typeof RoundingMode];
 
 const formatCache: FmtCacheType = {};
-const fmtReg = /[0#.,]/;
+const signifcandReg = /[0#.,]/;
+const signReg = /[+-]/;
 const resolveFormat = (pattern: string): FmtObject => {
   if (formatCache[pattern]) {
     return formatCache[pattern];
@@ -52,19 +55,30 @@ const resolveFormat = (pattern: string): FmtObject => {
 
   const prefix: string[] = [];
   const suffix: string[] = [];
+  let exponentSign = false;
+  let scientificChar = '';
   let withSign = false;
   let percent: PercentEnum = 1; // Do you need to convert percentile or millennium into 100 and 1000?
-  const fmt: string[] = [];
+  const significand: string[] = [];
+  const exponent: string[] = [];
   let ch = '';
-  let state = 'PREFIX';
+  const states = {
+    PREFIX: 'PREFIX',
+    SIGNIFICAND: 'SIGNIFICAND',
+    EXPONENT: 'EXPONENT',
+    SUFFIX: 'SUFFIX',
+  };
+  let state = states.PREFIX;
   let shouldEscape = false;
 
   let temp: string[] = [];
   function append(c: string, i: number) {
-    if (state === 'PREFIX') {
+    if (state === states.PREFIX) {
       temp = prefix;
-    } else if (state === 'FMT') {
-      temp = fmt;
+    } else if (state === states.SIGNIFICAND) {
+      temp = significand;
+    } else if (state === states.EXPONENT) {
+      temp = exponent;
     } else {
       temp = suffix;
     }
@@ -73,9 +87,14 @@ const resolveFormat = (pattern: string): FmtObject => {
       return;
     }
 
-    if (state === 'PREFIX' && ['+', '-'].includes(c) && fmtReg.test(pattern[i + 1])) {
+    const nextChar = pattern[i + 1];
+    if (state === states.PREFIX && signReg.test(c) && (signifcandReg.test(nextChar) || /e/i.test(nextChar))) {
       temp.pop();
       withSign = true;
+    }
+
+    if (state === states.EXPONENT && signReg.test(c)) {
+      exponentSign = true;
     }
 
     if (suffix.length === 1) {
@@ -88,10 +107,24 @@ const resolveFormat = (pattern: string): FmtObject => {
   }
 
   function setState(c: string) {
-    if (state === 'PREFIX' && fmtReg.test(c)) {
-      state = 'FMT';
-    } else if (state === 'FMT' && !fmtReg.test(c)) {
-      state = 'SUFFIX';
+    if (state === states.PREFIX) {
+      if (signifcandReg.test(c)) {
+        state = states.SIGNIFICAND;
+      } else if (/e/i.test(c)) {
+        scientificChar = c;
+        state = states.EXPONENT;
+      }
+    } else if (state === states.SIGNIFICAND) {
+      if (/e/i.test(c)) {
+        scientificChar = c;
+        state = states.EXPONENT;
+      } else if (!signifcandReg.test(c)) {
+        state = states.SUFFIX;
+      }
+    } else if (state === states.EXPONENT) {
+      if (!signReg.test(c) || exponent.length > 1) {
+        state = states.SUFFIX;
+      }
     }
   }
   for (let i = 0; i < pattern.length; i++) {
@@ -112,25 +145,27 @@ const resolveFormat = (pattern: string): FmtObject => {
   }
 
   const prefixStr = prefix.join('');
-  const fmtStr = fmt.join('');
+  const significandStr = significand.join('');
   const suffixStr = suffix.join('');
 
-  if (!fmtStr) {
+  if (!significandStr) {
     formatCache[pattern] = {
       suffix: suffixStr,
       prefix: prefixStr,
       percent,
       thousandSeparate: 3,
       withSign,
+      scientificChar,
+      exponentSign,
     };
     return formatCache[pattern];
   }
 
-  if (/\..*\./.test(fmtStr)) {
+  if (/\..*\./.test(significandStr)) {
     throw Error(`Multiple decimal separators in pattern "${pattern}"`);
   }
 
-  const [intFmt, decimalFmt = ''] = fmtStr.split('.');
+  const [intFmt, decimalFmt = ''] = significandStr.split('.');
   if (/[^0#]/.test(decimalFmt)) {
     throw Error(`Malformed pattern "${pattern}"`);
   }
@@ -163,7 +198,7 @@ const resolveFormat = (pattern: string): FmtObject => {
   const { length } = trailingZeros;
   const maxScale = decimalFmt.length;
   const minScale = decimalFmt.match(/^0*/)?.[0].length;
-  const radixPoint = fmtStr.endsWith('.');
+  const radixPoint = significandStr.endsWith('.');
 
   const config: FmtObject = {
     prefix: prefixStr,
@@ -175,6 +210,8 @@ const resolveFormat = (pattern: string): FmtObject => {
     length,
     radixPoint,
     withSign,
+    scientificChar,
+    exponentSign,
   };
   formatCache[pattern] = config;
   return config;
@@ -304,14 +341,37 @@ export default class DecimalFormat {
   }
 
   format(n: number | string): string {
-    const { maxScale, minScale, percent, length, thousandSeparate, prefix, suffix, radixPoint, withSign } = this.config;
+    const {
+      maxScale,
+      minScale,
+      percent,
+      length,
+      thousandSeparate,
+      prefix,
+      suffix,
+      radixPoint,
+      withSign,
+      scientificChar,
+      exponentSign,
+    } = this.config;
     let num: number | string = +n;
+
     if (Number.isNaN(num)) {
       throw Error('not a valid number');
     }
-    // If there are thousandths, if there are hundredths, first expand the corresponding multiple.
-    num = enlarge(num, Math.log10(percent));
 
+    let percentExponent = Math.log10(percent);
+    let exponent = 0;
+    if (scientificChar) {
+      exponent = Math.floor(Math.log10(Math.abs(num)));
+      num = num / 10 ** exponent;
+      exponent += percentExponent;
+      percentExponent = 0;
+    }
+
+    // If there are thousandths, if there are hundredths, first expand the corresponding multiple.
+    num = enlarge(num, percentExponent);
+    
     if (maxScale !== undefined) {
       num = (+round(+num, maxScale, this.roundingMode)).toFixed(maxScale);
     }
@@ -344,8 +404,20 @@ export default class DecimalFormat {
       num = `+${num}`;
     }
     if (num === '') {
-      num = 0;
+      num = '0';
     }
-    return `${prefix}${num}${suffix}`;
+
+    let exp = '';
+    if (scientificChar) {
+      if (+int >= 10) {
+        exponent += 1;
+        num = num.replace('0', '');
+      }
+      if (exponent) {
+        exp = `${scientificChar}${exponentSign && exponent > 0 ? '+' : ''}${exponent}`;
+      }
+    }
+
+    return `${prefix}${num}${exp}${suffix}`;
   }
 }

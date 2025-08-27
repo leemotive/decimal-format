@@ -27,6 +27,12 @@ df2.format(0.034993); // 34.99‰
 
 const df3 = new DecimalFormat('￥#,##0.00元');
 df3.format(1234.995); // ￥1,235.00元
+
+const df4 = new DecimalFormat('0.00E');
+df4.format(1234); // 1.23E3
+
+const df5 = new DecimalFormat('0.00E+');
+df5.format(1234); // 1.23E+3
 ```
 
 RoundingMode defines the rounding modes of the formatting
